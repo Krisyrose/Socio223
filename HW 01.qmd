@@ -1,0 +1,115 @@
+---
+title: "HW 1"
+author: "Kristy Feinberg"
+format: html
+embed-resources: true
+editor: visual
+---
+
+## Question 1
+
+I installed the three packages (causact, dplyr, and igraph). But I did it in the console as I was instructed.
+
+Function used was --\> Install.packages("\_\_\_\_")\
+
+## Question 2
+
+```{r}
+library(causact)
+library(dplyr)
+library(igraph)
+
+df <- dplyr::as_data_frame(x = c(1,2,3))
+
+glimpse(df)
+
+df <- dplyr::n_distinct(x <- c(5,6,2,7,9,1))
+
+```
+
+**What was the error when running df \<- as_data_frame(x = c(1,2,3))?**
+
+```         
+Error in `ensure_igraph()`:
+! Must provide a graph object (provided wrong object type).
+Backtrace:
+ 1. igraph::as_data_frame(x = c(1, 2, 3))
+ 2. igraph:::ensure_igraph(x)
+Execution halted
+```
+
+**Why did adding "dplry ::" work?**
+
+df \<- dplyr::as_data_frame(x = c(1,2,3)) worked because we indicated which package the function is coming from.
+
+df \<- dplyr::n_distinct(x \<- c(5,6,2,7,9,1)) counts the number of elements. Value shown in global environment is 6L.
+
+**Can you figure out why R called the function from `igraph` instead of `dplyr`?**
+
+My guess is both packages (igraph and dplyr) have a function called "as_data_frame". And so when the function was called without a reference to a package it used the most recently loaded package. Similar to a stack in C, Last in First out. Because I loaded the packages `causact`, `dplyr`, and `igraph`in that order, the call to "as_data_frame" used igraph, which was the most recently loaded package.
+
+## Question 3
+
+```{r}
+?n_distinct
+```
+
+Description: `n_distinct()` counts the number of unique/distinct combinations in a set of one or more vectors. It's a faster and more concise equivalent to `nrow(unique(data.frame(...)))`.
+
+**MY ANSWER**: Essentially, the 'n_distinct()' function counts the unique values in a vector or data set. I could see this being helpful when there is a lot of repeating numbers.
+
+## Question 4
+
+```{r}
+glimpse(baseballData)
+```
+
+Rows = 12,145
+
+Columns = 5
+
+'Home' is reference to a city and 'HomeScore' is a number value. 'Home' & 'visitor' would be identification variables and 'Homescore' & 'Visitorscore' would be measurement variables. 'Home' is also a factor variable and 'HomeScore' is an integer variable as indicated by \<fct\> and \<int\>.
+
+## Question 5
+
+```{r}
+baseballData[1,]
+```
+
+**What does one row in the data represent?**
+
+It represents the first column of the data set.
+
+```{r}
+baseballData[,2:3] %>% head()
+```
+
+**What do these two columns represent?**
+
+These columns represent the Home and Visitor Team which are the second and third columns in the data set. I believe these are identification variables.
+
+## Question 6
+
+```{r}
+name <-
+  c(
+    "Wayne Gretzky",
+    "Gordie Howe",
+    "Jaromir Jagr",
+    "Brett Hull",
+    "Marcel Dionne",
+    "Phil Esposito" ,
+    "Mike Gartner",
+    "Alex Ovechkin",
+    "Mark Messier" ,
+    "Steve Yzerman"
+  )
+
+goals <- c(894, 801, 766, 741, 731, 717, 708, 700, 694, 692)
+
+year_started <- c(1979, 1946, 1990, 1986, 1971, 1963, 1979, 2005, 1979, 1983)
+
+df <- tibble(name,goals,year_started) 
+
+glimpse(df)
+```

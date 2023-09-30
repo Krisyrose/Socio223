@@ -1,0 +1,111 @@
+---
+title: "HW 04"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Set Up
+
+```{r}
+#| message: false
+library(tidyverse)
+```
+
+## Question 1
+
+```{r}
+nfl_salaries <- read_csv("https://raw.githubusercontent.com/vaiseys/dav-course/main/Data/nfl_salaries.csv")
+
+glimpse(nfl_salaries)
+```
+
+## Question 2
+
+Reshape it so that every row tells you the salary associated with a position each year. Your new dataset should have three columns: `year`, `position`, `salary`.
+
+```{r}
+tidy_nfl_salaries <- nfl_salaries |>
+  pivot_longer(cols = c(2:11),
+               names_to = "Position",
+               values_to = "Salary")
+tidy_nfl_salaries
+```
+
+## Question 3
+
+Filter your newly created dataset so that it only contains quarterbacks. Then, make a histogram where salary is in the x-axis. Then use `facet_wrap` to get the histogram for each `year`.
+
+```{r}
+tidy_quarterbacks <- tidy_nfl_salaries %>% filter(Position == "Quarterback")
+```
+
+```{r}
+tidy_quarterbacks <- tidy_quarterbacks |> 
+  mutate(new_salary = Salary / 1000000)
+```
+
+```{r}
+ggplot(tidy_quarterbacks,
+       aes(x = new_salary)) +
+  geom_histogram()+
+  theme_minimal()+
+  labs(x = "Salary (in millions)", y = "Count", title = "Quarterback Salary")
+
+```
+
+Then use `facet_wrap` to get the histogram for each `year`.
+
+```{r}
+ ggplot(tidy_quarterbacks,
+       aes(x = new_salary)) +
+  geom_histogram(colour = "black",
+                 fill="white")+
+  facet_wrap(~year)+
+  theme_minimal()+
+  labs(x = "Salary (in millions)", y = "Count", title = "Quarterback Salary by Year")
+```
+
+**What patterns do you notice?**
+
+There is a higher count of Quarterbacks making less than 1 million. As the years go on, there are more outliers of quarterbacks with higher and higher salaries.
+
+## Question 4
+
+Let's calculate the average salary for each position, each year. Create a new dataset that contains the average salary for each position each year. To do this, you will need the `group_by` and `summarize` combo.
+
+```{r}
+salary_position <- tidy_nfl_salaries |> 
+  group_by(Position, year) |> 
+  summarize(avg_salary = mean(Salary, na.rm = TRUE)) |>
+  ungroup()
+
+
+salary_position
+```
+
+## Question 5
+
+Make a linegraph that traces the evolution of each position's average salary across the years. You can use use different strategies to distinguish between positions - color or facets for example. What is important is that you see each position's trajectory clearly and that they are comparable.
+
+```{r}
+salary_position <- salary_position |>
+    mutate(avg_salary = avg_salary / 1000000)
+```
+
+```{r}
+ggplot(salary_position,
+       aes(x = year,
+           y = avg_salary,
+           label = Position,
+           colour = Position)) +
+  geom_line()+
+  geom_point(alpha=.5)+
+  labs(y = "Salary (in millions)", x = "Year", title = "Change in Salary by Position")
+  
+
+```
+
+**Describe at least two trends that are apparent to you.**
+
+The offensive and defensive lineman seem to have steeper salary increases in 2016 through 2018. Throughout all the years, the special team position has the lowest salary.

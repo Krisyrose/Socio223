@@ -1,0 +1,203 @@
+---
+title: "HW 02"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Set Up
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+olympics  <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-07-27/olympics.csv')
+glimpse(olympics)
+```
+
+```{r}
+table(olympics$medal)
+```
+
+## Question 1
+
+```{r}
+gold_medalists <- olympics %>% 
+  filter(medal == "Gold")
+
+glimpse(gold_medalists)
+```
+
+**How many rows does the resulting dataset have?**
+
+The new dataset has 13,372 rows.
+
+## Question 2
+
+**What's the most appropriate plot to display these data?**
+
+Scatter plot because we are plotting two quantitative variables against each other.
+
+```{r}
+ggplot(data = gold_medalists,
+         aes(x = year, y = age)) +
+  geom_point(alpha = .2)+
+  labs(x = "Year",
+       y = "Age",
+       title = "Gold Medalists") +
+  theme_minimal()
+```
+
+**How has the age of participants change across the years?**
+
+As the years go on, the standard distribution of age has decreased. Meaning the spread of points far away from the mean has been decreasing.
+
+**We are missing a lot of information because there are a lot of athletes that have the same age. This means we are overplotting. Can you think of a solution to this?**
+
+"geom_point()" plots circles on top of each other and it is difficult to tell how many data points fall in one category. Instead by using "geom_jitter()", there will be an added little bit of random noise to the location of the points.
+
+Also by using alpha, you can change the appearance of the data points to be more opaque. This helps us get a sense of how many data points are represented at each coordinate of the plot.
+
+```{r}
+ggplot(data = gold_medalists,
+         aes(x = year, y = age)) +
+  geom_jitter(alpha = 0.2)+
+  labs(x = "Year",
+       y = "Age",
+       title = "Gold Medalists") +
+  theme_minimal()
+```
+
+## Question 3
+
+Plot year and gold medals won that year as a line graph.
+
+```{r}
+us_medals <- gold_medalists %>% 
+  filter(noc == "USA") %>% 
+  group_by(year) %>% 
+  summarise(num_medals = n())
+```
+
+```{r}
+ggplot(data = us_medals,
+       aes(x = year,
+           y = num_medals)) +
+  geom_line() +
+  geom_smooth() +
+  theme_minimal()
+```
+
+> **What was the country's most successful year? As a bonus, can you guess why the line is so wiggly (technical term) towards the end?**
+>
+> The most successful year was 1981.
+>
+> In the past the Olympics occurred every 4 years. But in 1994, they changed the games to occur every 2 years, one summer and one winter. This "wiggly" line is due to the increase in occurrences of the Olympics.
+
+## Question 4
+
+```{r}
+two_events <- gold_medalists %>%
+  filter(
+    event == "Gymnastics Men's Individual All-Around"  |
+      event == "Gymnastics Women's Individual All-Around" |
+      event == "Athletics Women's 100 metres"   |
+      event == "Athletics Men's 100 metres"
+  ) 
+
+glimpse(two_events)
+```
+
+Filter the data set to only contains the gymnastics events.
+
+```{r}
+gymnastic_events <- two_events %>% 
+  filter(sport == "Gymnastics")
+
+glimpse(gymnastic_events)
+```
+
+Make a histogram where age is in the x-axis.
+
+```{r}
+ggplot(data = gymnastic_events,
+       aes(x = age)) +
+  geom_histogram(boundary = 0,        # start the first bin at 0
+                 binwidth = .2,       # make the bins .2 (xG) units wide  
+                 color = "white") +   # make the bin borders white
+  labs(x = "Age (years)",
+       title = "Gymnastics Events") + 
+  theme_minimal()
+```
+
+**Briefly describe this distribution.**
+
+The distribution appears to have two different bell curves or averages. This is due to the fact that women's peak gymnastic age is much younger than for males and males tend to be in their prime athletic years for a longer period of time.
+
+**Now, try to see whether there are differences between female and male athletes by using the `facet_wrap()` function.**
+
+```{r}
+ggplot(data = gymnastic_events,
+       aes(x = age,
+           group = sex,
+           fill = sex)) +
+  geom_histogram(boundary = 0,        # start the first bin at 0
+                 binwidth = .8,       # make the bins .2 (xG) units wide  
+                 color = "white",     # make the bin borders white
+                 position = "dodge") +  
+  facet_wrap(~ sex) + 
+  labs(x = "Age (years)",
+       title = "Gymnastics Events by Gender") + 
+  theme_minimal()
+   
+ 
+```
+
+**What athletes tend to be older?**
+
+Males, on average, tend to be older than females.
+
+## Question 5
+
+Make a boxplot where the x-axis is event and the y-axis is height.
+
+```{r}
+ggplot(data = two_events,
+       mapping = aes(x = event,
+                     y = height)) + 
+  labs(x = "Event",
+       y = "Height") +
+  geom_boxplot(alpha = 0.2) +
+  theme_minimal() +
+  scale_x_discrete(labels = function(x)    #wraps the event labels 
+    stringr::str_wrap(x, width = 20))
+
+             
+```
+
+**Briefly describe your results.**
+
+For both the 100 Meter and Gymnastics All-Around, on average, men are taller than females. Also, the average heights for both men and women are greater for those participating in the 100 metres than for gymnasts.
+
+## Question 6
+
+```{r}
+us_medalists <- gold_medalists %>% 
+  filter(noc == "USA")
+```
+
+Make a barplot where the x axis is `year`. Make sure you can see parallel lines for female and male athletes.
+
+```{r}
+ggplot(data = us_medalists, 
+       mapping = aes(x = year,
+                     fill = sex)) +
+  geom_bar(position="dodge") +
+  theme_minimal()
+```
+
+**Can you notice any patterns?**
+
+In the early 1900's there were very few female gold medalists. It wasn't until the 1980's that females started to hold more gold medals. This could be due to the fact that women were competing in fewer events than men.

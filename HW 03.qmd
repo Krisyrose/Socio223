@@ -1,0 +1,193 @@
+---
+title: "HW 03"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Set Up
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+mario_kart <- read_csv("https://raw.githubusercontent.com/vaiseys/dav-course/main/Data/world_records.csv")
+glimpse(mario_kart)
+```
+
+## Question 1
+
+```{r}
+three_laps <- mario_kart %>% filter(type == "Three Lap")
+```
+
+**How would you create a dataset that does not contain any times recorded on that infamous track?**
+
+The two ways to remove data are by using filter() or select(). Because the Tracks are column data and we want to remove Rainbow Road, we will filter for that track. We will use a "!=" to indicate does not equal when filtering for "Rainbow Road".
+
+```{r}
+three_laps_no_rainbow <- three_laps %>% filter(track != "Rainbow Road")
+```
+
+Now, save a dataset that only contains the records achieved at Rainbow Road.
+
+```{r}
+Rainbow_Road <- three_laps %>% filter(track == "Rainbow Road")
+```
+
+## Question 2
+
+Use `summarize()` to get the average time and standard deviation of records set at Rainbow Road.
+
+```{r}
+Rainbow_Road |> 
+  summarize(avg_time = mean(time),
+            sd_time = sd(time))
+```
+
+Now, do the same for the dataset that contains all other tracks.
+
+```{r}
+three_laps_no_rainbow  |> 
+  summarize(avg_time = mean(time),
+            sd_time = sd(time))
+```
+
+**Notice any differences?**
+
+Rainbow Road has a much longer average time and standard deviation than the average all the other tracks.
+
+## Question 3
+
+```{r}
+three_laps |> 
+  group_by(track) |>
+  summarize(records = n()) |>
+  arrange(desc(records))
+```
+
+**What's the track that has had the most records established in it?**
+
+Toad's Turnpike
+
+## Question 4
+
+We want to know if there are drivers who have multiple records at each track, and how many records they have. This will involve grouping by both driver and track.
+
+```{r}
+three_laps |> 
+  group_by(player,track) |>
+  summarize(records = n()) |>
+  arrange(desc(records))
+```
+
+**Who is the player that has recorded the most records at any one track and what track was it?**
+
+Penev recorded the most records at track Choco Mountain
+
+## Question 5
+
+Tell me what the average time for each track is using `group_by` and `summarize`.
+
+```{r}
+three_laps |> 
+  group_by(track) |>
+  summarize(avg_time = mean(time)) |>
+  arrange(desc(avg_time))
+```
+
+**What track has the highest average time?**
+
+Rainbow Road has the highest average time of 275.63
+
+For example we can pick the lowest time for each player like this:
+
+```{r}
+three_laps %>% 
+  group_by(player) %>% 
+  arrange(time) %>% 
+  slice(1) %>% 
+  head()
+```
+
+Show me the best time recorded on each track
+
+```{r}
+three_laps %>% 
+  group_by(track) %>% 
+  arrange(time) %>% 
+  slice(1) %>% 
+  head() %>%
+  select(time) %>%
+  arrange(time)
+```
+
+## Question 6
+
+Create a new variable that is a `1` if `record_duration` is higher than 100 or 0 otherwise.
+
+```{r}
+long_records <- three_laps |> 
+  mutate(over_100 = if_else(record_duration > 100, 1L, 0L))
+```
+
+Now, grouping by player, tell me the total amount of long duration records each player holds.
+
+```{r}
+num_long_records <- long_records %>% filter(over_100 == 1)
+```
+
+```{r}
+num_long_records %>% 
+  group_by(player) %>% 
+  summarize(num_long_records = n()) %>% 
+  arrange(desc(num_long_records))
+```
+
+**What player has the most long duration records?**
+
+Player MR
+
+## Question 7
+
+```{r}
+drivers <- read_csv("https://raw.githubusercontent.com/vaiseys/dav-course/main/Data/drivers.csv")
+
+```
+
+```{r}
+mod_drivers <- drivers %>% 
+  select(player, nation) %>% 
+  group_by(player) %>% 
+  slice_head(n=1)
+```
+
+```{r}
+joined_drivers <- left_join(three_laps,
+                            mod_drivers)
+```
+
+```{r}
+nation_record <-joined_drivers |>
+  group_by(nation) |>
+  summarize(nation_count = n())
+```
+
+```{r}
+nation_record <- joined_drivers |>
+  group_by(nation) |>
+  summarize(count_records = n())
+
+nation_sorted <- nation_record |>
+  arrange(desc(count_records))
+
+nation_sorted |> 
+  ggplot(aes(x = reorder(nation, -count_records), y = count_records)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count_records), vjust = -.2)+
+  theme(axis.text.x = element_text(angle = 90))+ #looked this up online for aesthetic purposes
+  labs(x = "Country", y = "Record Count", title = "Record Count by Country")
+
+```
