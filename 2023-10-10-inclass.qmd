@@ -277,6 +277,7 @@ ggplot(gender, aes(x = rank, y = percentage, fill = sex)) +
 ```{r}
 ggplot(d, aes(x = age, y = score, color = sex)) +
   geom_point() +
+  geom_smooth()+
   labs(x = "Age", y = "Score") +
   theme_minimal()
 ```
