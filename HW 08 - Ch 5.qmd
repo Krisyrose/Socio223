@@ -6,7 +6,7 @@ editor: visual
 embed-resources: true
 ---
 
-## Set Up 
+## Set Up
 
 ```{r}
 library(tidyverse)

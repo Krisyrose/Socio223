@@ -1,0 +1,56 @@
+---
+title: "HW 09 - Ch6"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Set Up 
+
+```{r}
+library(tidyverse)
+# Set our ggplot theme from the outset
+theme_set(theme_light())
+# Read in the data 
+gender_employment <- read_csv("https://raw.githubusercontent.com/vaiseys/dav-course/main/Data/gender_employment.csv")
+
+# Glimpse at the data 
+glimpse(gender_employment)
+```
+
+```{r}
+gender_employment%>% 
+  ggplot(aes(x = year, y = wage_percent_of_male)) +
+  geom_jitter(alpha = 0.1) + 
+  geom_smooth(method = "lm") + 
+  labs(title = "Women's earnings with respect to men's", 
+       y = "% of Men's Income", 
+       x = "Year")
+```
+
+We will be observing how this relationship varies across occupations
+
+## Question 1
+
+Relevel to make major_category the central variable
+
+```{r}
+gender_employment <- gender_employment %>% 
+  mutate(major_category = as.factor(major_category), 
+         major_category = relevel(major_category, ref = "Management, Business, and Financial"))
+```
+
+Now, fit the model described above and save it as `parallel_model`. Using `tidy()` from the `broom` package, summarize the results. Can we say anything about overall trends by year?
+
+```{r}
+library(dplyr)
+library(broom)
+parallel_model <- lm(wage_percent_of_male ~ year + major_category, data = gender_employment)
+
+model_summary <- tidy(parallel_model)
+
+summary(parallel_model)
+```
+
+**Can we say anything about overall trends by year?**
