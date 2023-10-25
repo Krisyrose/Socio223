@@ -6,7 +6,7 @@ editor: visual
 embed-resources: true
 ---
 
-## Set Up 
+## Set Up
 
 ```{r}
 library(tidyverse)
@@ -48,9 +48,125 @@ library(dplyr)
 library(broom)
 parallel_model <- lm(wage_percent_of_male ~ year + major_category, data = gender_employment)
 
-model_summary <- tidy(parallel_model)
+broom:: tidy(parallel_model)
 
-summary(parallel_model)
 ```
 
 **Can we say anything about overall trends by year?**
+
+The regression looks something like wage percent of males = -306.718 + 0.1922(year). Year would be 2000, 2020, etc. With each one additional year we expect the percentage for the baseline category to increase by 0.1922
+
+**Now you do some interpretation. Using the coefficients from your model, calculate the wage percentage of male income for Sales and Office occupations on 2015.**
+
+wage percent of males = -306.718 + 0.1922(year) + major category = -306.718+0.1922(2015)+3.3261 = 82.8911
+
+**Now calculate the wage percentage of male income for Service occupations on 2016.**
+
+wage percent of males = -306.718 + 0.1922(year) + major category = -306.718+0.1922(2016)+6.077 = 86.8342
+
+## Question 2
+
+**Using the code from the introductory section, make a similar plot but facet it by major category so that lines vary across categories. What do you notice? Is the parallel trends assumption warranted?**
+
+```{r}
+gender_employment%>% 
+  ggplot(aes(x = year, y = wage_percent_of_male, group = major_category,colour=major_category)) +
+  geom_jitter(alpha = 0.1) + 
+  labs(title = "Women's earnings with respect to men's", 
+       y = "% of Men's Income", 
+       x = "Year") +
+  geom_parallel_slopes(se = FALSE) +  # this is a modern dive thing!
+  theme(legend.position = "top")
+
+```
+
+A parallel trend is not warranted here. As we can see the lines intersect each other and are not parallel throughout the years.
+
+## Question 3
+
+**Let's fit another model that includes an interaction between `major_category` and `year`. This will allow the slopes to differ across major categories. Again, use `tidy()` to get the summary of the results.**
+
+```{r}
+library(dplyr)
+library(broom)
+two_var_model <- lm(wage_percent_of_male ~ year*major_category, data = gender_employment)
+
+broom:: tidy(two_var_model)
+
+```
+
+**So tell me what the estimate would be for "Computer, Engineering, and Science" for 2016. What about the same estimate but for "Service"? Do you notice any differences?**
+
+**"Computer, Engineering, and Science"** = -1370.472+0.72(year)-0.495(year)+major_category = -1370.472+0.72(2016)-0.495(year)+1002.853 = 85.981
+
+**"Service"** = -1370.472+0.72(year)-1.06(year)+major_category = -1370.472+0.72(2016)-1.06(2016)+2137.650 = 81.738
+
+The wage percent for service workers was 86.83 and now it is 81.738. This means the initial regression over estimates the value of wage percentage for service works in 2016. A parallel slope shouldn't be an accurate prediction.
+
+## Question 4
+
+**Given that we have the ability to add interactions to models - i.e. to have slopes vary across categories -, why would we choose to build a model that assumes parallel trends?**
+
+I would not use a parallel trends model unless you know the two variables are related or for simplicity sake. "all other things being equal, simpler solutions are more likely to be correct than complex ones.\" There is a chance we are adding complexity when it is not relevant.
+
+## Question 5
+
+**Let's now think about a model that includes two continuous variables as explanatory variables. Here, we are still interested in predicting how `wage_percent_of_male` has changed across years. Let's start simple: build a model where `wage_percent_of_male` is the outcome variable and `year` is the explanatory variable and save it as `simple_fit`. Then, use `tidy()` to look at the model output. Briefly, describe the results.**
+
+```{r}
+library(dplyr)
+library(broom)
+simple_fit <- lm(wage_percent_of_male ~ year, data = gender_employment)
+
+broom::tidy(simple_fit)
+```
+
+The equation would look like -321.83+0.201(year). Each additional year adds .2 to the total wage percentage.
+
+**Let's add the other variable in there. We want a model that takes into account the variable `percent_female`. This variable records what percentage of the workforce of a given occupation is made up of women. The thinking behind this addition is that the proportion of women in an industry might affect how much the gender paygap has changed across the last few years.**
+
+**Before we build the model we want to explore the relationship between these variables. Like in the chapter, use `select()` and `cor()` to find the correlations between these three variables. Because we have some missing values, you want to give `cor()` the argument `use = "complete.obs"`.**
+
+```{r}
+gender_employment %>% 
+  select(year, wage_percent_of_male, percent_female) %>% 
+  cor(use = "complete.obs")
+```
+
+**Describe the relationships between the variables.**
+
+Over time more women are entering the industry. As more women enter a industry the wage percentage of the industry they make increases. The more women in the industry the smaller the wage gap as shown by 0.1114
+
+**What we want to to know, however, is the relationship between year and the paygap conditional on the proportion of women who work in an occupation. This is where the model described above comes handy. Build that model and save it as `multiple_fit`. Then, use `tidy()` to summarize the results. Describe the results in your own words. Is this what you would have expected?**
+
+```{r}
+multiple_fit <- lm(wage_percent_of_male ~ year*percent_female, data = gender_employment)
+
+get_regression_table(multiple_fit) %>% select(term,estimate)
+```
+
+```{r}
+
+```
+
+the wage percentage of male = -800.111+0.438(year)+10.637(female)-0.005(female)(year)
+
+## Question 6 
+
+**Here, we will practice some model comparison and I will also introduce you to another useful tool from the `broom` package.**
+
+**First, let's review the discussion about R squared. Briefly tell me, in your own words, what R squared is.**
+
+**Okay, let's now compare the R squared for `simple_fit` and `multiple_fit`. To do this we are going to use `glance()` from the `broom` package. Run `glance()` on `simple_fit`. This should give you a lot of information, including the R squared. It turns out that you can save that output doing something like this.**
+
+```{r}
+simple_glanced <- glance(simple_fit)
+```
+
+**And then you can access the R squared, the same way you would access a column from a dataframe, with the `$` sign.**
+
+```{r}
+simple_glanced$r.squared
+```
+
+**Do this for both models and compare the R squared. What can you conclude from this?**
