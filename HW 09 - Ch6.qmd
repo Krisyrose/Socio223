@@ -69,6 +69,7 @@ wage percent of males = -306.718 + 0.1922(year) + major category = -306.718+0.19
 **Using the code from the introductory section, make a similar plot but facet it by major category so that lines vary across categories. What do you notice? Is the parallel trends assumption warranted?**
 
 ```{r}
+#| warning: false
 library(moderndive)
 gender_employment%>% 
   ggplot(aes(x = year, y = wage_percent_of_male, group = major_category,colour=major_category)) +
