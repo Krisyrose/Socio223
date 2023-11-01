@@ -235,10 +235,10 @@ pred_df
 You can use `get_regression_points()` or `predict()` to see how the model did at predicting each individual value of `rides`. Use one of these functions to find the date with the *largest absolute residual*. That is, find the day where the model is most wrong about predicted ridership. Why is the model so wrong about this day? (There is a correct answer here.
 
 ```{r}
-result <- get_regression_points(model2) %>%
+result <- get_regression_points(model2) 
+  
+result%>%
   arrange(desc(abs(residual)))
-
-result
 ```
 
-The largest residual was -3490.348
+The largest residual was -3490.348. This occurred on 10-29-2012 which was the day of Category 2 hurricane called Sandy. This storm killed more than 100 people and swept up the east coast.

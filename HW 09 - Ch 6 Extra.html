@@ -3343,10 +3343,10 @@ wind_kph          1        1</code></pre>
 <h2 class="anchored" data-anchor-id="question-9">Question 9</h2>
 <p>You can use <code>get_regression_points()</code> or <code>predict()</code> to see how the model did at predicting each individual value of <code>rides</code>. Use one of these functions to find the date with the <em>largest absolute residual</em>. That is, find the day where the model is most wrong about predicted ridership. Why is the model so wrong about this day? (There is a correct answer here.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">get_regression_points</span>(model2) <span class="sc">%&gt;%</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(residual)))</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">get_regression_points</span>(model2) </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>result<span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(residual)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 500 × 7
       ID rides temp_c wind_kph weekend rides_hat residual
@@ -3364,7 +3364,7 @@ wind_kph          1        1</code></pre>
 # ℹ 490 more rows</code></pre>
 </div>
 </div>
-<p>The largest residual was -3490.348</p>
+<p>The largest residual was -3490.348. This occurred on 10-29-2012 which was the day of Category 2 hurricane called Sandy. This storm killed more than 100 people and swept up the east coast.</p>
 </section>
 
 </main>
