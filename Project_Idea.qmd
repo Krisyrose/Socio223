@@ -1,0 +1,30 @@
+---
+title: "Project-Idea"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: TRUE
+---
+
+## Final Project Idea
+
+**I'm definitely going to do something related to business and finance. I have been looking at data sets on the world's billionaires. I thought it would be interesting to compare their donations to charities and how it related proportionally to those of lesser wealth. I'm concerned on being able to find data for this.**
+
+This is the data set of billionaires: https://www.kaggle.com/datasets/nelgiriyewithana/billionaires-statistics-dataset
+
+**I could also examine credit card transactions between gender or overtime.** \
+https://www.kaggle.com/datasets/rajatsurana979/comprehensive-credit-card-transactions-dataset
+
+**Data sets I want to save in case I change my mind**
+
+https://www.kaggle.com/datasets/harishkumardatalab/housing-price-prediction
+
+https://www.kaggle.com/datasets/desalegngeb/students-exam-scores
+
+## Peer Project Ideas
+
+**Jessie** was originally thinking of examining a data set related to business but is now thinking it would be more interesting to look at Spotify data.
+
+**Thomas** has no idea what he will be examining but he is toying around with the idea of a jeopardy game show data set.
+
+ 
