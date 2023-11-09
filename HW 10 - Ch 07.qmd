@@ -65,11 +65,19 @@ Let's explore some of the vocabulary provided in the chapter.
 
 -   In this scenario, what is the population?
 
+    -   the population is all nobel prize winners from 1901 to 2016
+
 -   What is the sampling frame?
+
+    -   nobel prize winners
 
 -   What does the black line represent? (hint: the word population is in the name).
 
+    -   the black line represents the true proportion of nobel prize winners
+
 -   What does the red line represent?
+
+    -   the red line represents the sample predicition of nobel price winners
 
 ## Question 2
 
