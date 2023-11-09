@@ -12,7 +12,7 @@ embed-resources: TRUE
 
 This is the data set of billionaires: https://www.kaggle.com/datasets/nelgiriyewithana/billionaires-statistics-dataset
 
-**I could also examine credit card transactions between gender or overtime.** \
+**I could also examine credit card transactions between gender or overtime.**\
 https://www.kaggle.com/datasets/rajatsurana979/comprehensive-credit-card-transactions-dataset
 
 **Data sets I want to save in case I change my mind**

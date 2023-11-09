@@ -1,0 +1,166 @@
+---
+title: "HW 10"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Set Up
+
+```{r}
+library(tidyverse)
+library(here)
+library(moderndive)
+theme_set(theme_minimal())
+
+nobel_winners <- read_csv(here("Data", "nobel_winners.csv"))
+```
+
+Given that we are only interested in scientific Nobel prizes, let's get rid of the Nobel Peace prize. We will also create a column that indicates whether the recipient was born in the US.
+
+```{r}
+nobel_winners_flt <- nobel_winners %>% 
+  filter(category != "Peace") %>% 
+  mutate(is_us = if_else(birth_country == "United States of America", 1, 0))
+```
+
+Now, what is the *true* proportion of US-born Nobel prize winners?
+
+```{r}
+true_prop <- nobel_winners_flt %>% 
+  group_by(is_us) %>% 
+  summarise(prop = n()/nrow(nobel_winners_flt))
+
+ggplot() + 
+  coord_cartesian(xlim = c(0,1), ylim = c(0,1)) + 
+  geom_vline(xintercept = true_prop[2,2][[1]], linetype = "dashed")  + 
+  labs(x = "Proportion")
+```
+
+Now, let's say our friend gives us a random sample of 25 Nobel winners and we calculate our proportion. How far off would we be
+
+```{r}
+set.seed(33)
+# Random sample 
+our_sample <- sample_n(nobel_winners_flt, 
+                       size = 25, 
+                       replace = F)
+
+sample_prop <- our_sample %>% 
+  group_by(is_us) %>% 
+  summarise(prop = n()/nrow(our_sample))
+
+# How does our proportion look like? 
+ggplot() + 
+  coord_cartesian(xlim = c(0,1), ylim = c(0,1)) + 
+  geom_vline(xintercept = true_prop[2,2][[1]], linetype = "dashed")  + 
+  geom_vline(xintercept = sample_prop[2,2][[1]], linetype = "dotted", col = "red") +
+  labs(x = "Proportion")
+```
+
+## Question 1
+
+Let's explore some of the vocabulary provided in the chapter.
+
+-   In this scenario, what is the population?
+
+-   What is the sampling frame?
+
+-   What does the black line represent? (hint: the word population is in the name).
+
+-   What does the red line represent?
+
+## Question 2
+
+**Okay, you probably know what we are doing next. We are going to take repeated samples of differing sizes and explore what the results look like, much like we did in the chapter. This will reinforce the ideas of sampling variability and sample size, which are key.**
+
+**We will use the `rep_sample_n()` function from the moderndive package. (This is actually a copy of a function from the infer package, so it's the sort of function you could continue to use in the future.)**
+
+**Using this function, take 50 samples of 25 winners each. Plot your results. Be sure to add the mean proportion of your samples and the true proportion we calculated above. HINT: `summarize()` is going to be useful here.**
+
+```{r}
+nobel_size_25 <- 
+  nobel_winners_flt|> 
+  rep_sample_n(size = 25,
+               reps = 50) |>
+  group_by(replicate) |>
+  summarise(prop = sum(is_us)/25)
+
+ggplot(nobel_size_25, aes(x = prop))+
+  geom_histogram(binwidth = 0.02, color = "white")+
+  geom_vline(aes(xintercept = mean(prop)),
+             color="blue", linetype="dashed", size=.5)
+```
+
+## Question 3
+
+**Now, use this function to take 50 samples of 100 winners each. Plot your results in the same way that you did above.**
+
+**Which one of the two distributions varies more. Can you explain why?**
+
+```{r}
+nobel_size_100 <- 
+  nobel_winners_flt|> 
+  rep_sample_n(size = 100,
+               reps = 50) |>
+  group_by(replicate) |>
+  summarise(prop = sum(is_us)/100)
+
+ggplot(nobel_size_100, aes(x = prop))+
+  geom_histogram(binwidth = 0.02, color = "white")+
+  geom_vline(aes(xintercept = mean(prop)),
+             color="blue", linetype="dashed", size=.5)
+```
+
+The distribution with 50 samples of 25 winners each varies more. This is because the samples are smaller so the average value is more suspectible to outliers. The larger the sample the closer the mean will be to the actual value, this is because you are taking a great portion of the sample to represent the whole.
+
+## Question 4
+
+**Calculate the standard deviation of your samples collected using a size of 25 and a size of 100. Do these results support your argument above? What does this imply about sample size? What happens to the variability in our estimates as the sample size increases**
+
+```{r}
+data100 <- nobel_size_100$prop      
+
+sd(data100) 
+```
+
+```{r}
+data25 <- nobel_size_25$prop      
+
+sd(data25) 
+```
+
+Standard deviation measures the spread of the data. The sample size of 25 is expected to have a larger SD than that calculated for a sample size of 100. As the sample size increases we would expect the variation and therefore the SD to decrease, which is shown above.
+
+## Question 5
+
+**Now, repeat the same steps above to find the proportion of women who have been awarded the Nobel prize. Draw samples of 100 scientists at a time and plot your distribution of proportions.**
+
+```{r}
+nobel_winners_flt<- nobel_winners_flt |>
+  mutate(gender1 = if_else(gender=="Female",1,0))
+
+```
+
+```{r}
+nobel_size_100 <- 
+  nobel_winners_flt|> 
+  rep_sample_n(size = 100,
+               reps = 50) |>
+  group_by(replicate) |>
+  summarise(prop = sum(gender1)/100)
+
+ggplot(nobel_size_100, aes(x = prop))+
+  geom_histogram(binwidth = 0.02, color = "white")+
+  geom_vline(aes(xintercept = mean(prop)),
+             color="blue", linetype="dashed", size=.5)
+```
+
+The proportion of women who have earned the nobel price is approximately 0.038.
+
+## Question 6
+
+**The last question is a bit different. Please watch [this video](https://www.youtube.com/watch?v=jvoxEYmQHNM) referenced in the ModernDive book, then explain the Central Limit Theorem it in your own words. Be as concise as you can (i.e., use no more than 3-4 sentences) but convince me you really understand the basic idea.**
+
+The central limit theorem is a mathematical concept that states the distribution of randonly drawn samples from a larger population will always resemble that of a normal distribution or bell curve. When the sample size increases, the distribution of the sample will more closely relation the true distribution of the larger population. Generally sample sizes greater than 30 are sufficient for this theorem to hold true and one sample shouldn't not be able to influence another sample (meaning you are sampling with replacement).
