@@ -1,0 +1,256 @@
+---
+title: "Final Project"
+author: "Kristy Feinberg"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Setup
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(here)
+library(moderndive)
+library(broom)
+library(ggeffects)
+theme_set(theme_minimal())
+
+salary <- read_csv(here("Data", "Salary.csv"))
+```
+
+## 1. Introduction
+
+In today's society, the relationship between race and salary has become a focal point of discussions surrounding equity, diversity, and inclusion in the workplace. This statistical modeling assignment aims to examine the relationship between race and salary and interpret the underlying patterns and disparities.
+
+To address this question, I used a data set from Kaggle that compiled information on gender, age, salary, years of experience, education level, and country. This data was last updated on November 1, 2023 and is expected to be updated annually. Although this data set includes countries such as UK, Canada, China, Australia, etc, I chose to focus only on US data.
+
+Here's a snapshot of the sample size and some key figures:
+
+```{r,echo=FALSE}
+summary_table <- salary %>%
+  group_by(Country) %>%  
+  summarise(
+    count = n(),
+    Mean_Salary = mean(Salary, na.rm = TRUE),
+    SD_Salary = sd(Salary, na.rm = TRUE),
+    Mean_Experience = mean(`Years of Experience`, na.rm = TRUE),
+    SD_Experience = sd(`Years of Experience`, na.rm = TRUE)
+  ) %>%
+  arrange(desc(count))
+
+print(summary_table)  
+```
+
+There were a total of 6684 observation and 9 different variables. Because the distribution of observations for all the countries appeared to be equally distributed, I felt it was acceptable to filter the countries to only contain observations from the US.
+
+```{r, echo=FALSE}
+salary_us <- salary %>%     
+  mutate(`Education Level` = recode(`Education Level`,
+    '0' = "High School",
+    '1' = "Bachelor's",
+    '2' = "Master's",
+    '3' = "Phd"
+  ))
+```
+
+The data set indicates that the following integer values (0,1, 2, 3) correspond to different levels of education (High School, Bachelor's, Master's, Phd) respectively. For the readers sake, I will renaming these variables.
+
+## 2. Exploratory data analysis
+
+```{r, echo=FALSE}
+salary_us <- salary_us %>% filter(Country == "USA")  #filter data set for only people in the US (1356 obs)
+```
+
+```{r, echo=FALSE}
+summary_table2 <- salary_us %>%
+  group_by(Race) %>%  
+  summarise(
+    count = n(),  
+    Senior = sum(Senior == 1),
+    Mean_Salary = mean(Salary, na.rm = TRUE),
+    Median_Salary = median(Salary, na.rm = TRUE),
+    SD_Salary = sd(Salary, na.rm = TRUE),
+    Min_Salary = min(Salary, na.rm = TRUE),
+    Max_Salary = max(Salary, na.rm = TRUE)
+  ) %>% 
+  arrange(desc(count))
+
+print(summary_table2)  
+```
+
+The purpose of generating this summary table was to find the total count of observations and Seniors within each race. This was a test for my own sake to make sure we weren't removing too many factors and didn't have a significant amount, or distribution, remaining.
+
+```{r,echo=FALSE}
+summary_jobs <- salary_us %>%
+  group_by(`Job Title`) %>%  
+  summarise(
+    count = n(),
+    Mean_Salary = mean(Salary, na.rm = TRUE),
+  ) %>%
+  arrange(desc(count))
+
+print(summary_jobs)  
+```
+
+Before beginning our analysis it's important to have an understanding of what types of jobs are represented within our sample. It can be helpful in understanding the distribution of salaries and potential biases. The above table shows us that US observations were skewed towards Data and Tech heavy Jobs such as Engineering, Programming, and Data Science.
+
+```{r, message=FALSE, echo=FALSE}
+ggplot(data = salary_us, mapping = aes(x = `Years of Experience`, y = Salary, colour = Race)) +
+  geom_point(alpha = 0.2)+
+  geom_smooth(method = "loess")+
+ labs(x = "Years of Experiences", y = "Salary", title = "Salary Distribution by Experience (Figure 1)", caption = "Figure 1") + 
+theme(plot.caption = element_text(hjust = 0.5))
+```
+
+In Figure 1, we generated a scatter plot to see the overall relationship between our numerical outcome variable Salary and our numerical explanatory variable Years of Experiences. As the Years of Experience increased, there was an associated increase in Salary. Consistent with this relationship we see a positive quadratic correlation coefficient which we will account for in the regression computations.
+
+**Would it be unreasonable to say:** The highest salaries, on average, appear to occur when an individual has approximately 25 years of experience. After 25 years, we see a downward sloping relationship between one additional year of experience and salary. This could be explained by people making high salaries exiting the job market when they have enough savings and retiring. This would drive down the mean salary we see individuals with years of experience making.
+
+```{r, echo=FALSE}
+ggplot(data = salary_us, mapping = aes(x = Salary, y = Race, colour = Race)) + 
+  geom_boxplot(outlier.shape = '.')+
+ labs(x = "Salary", y = "Race", title = "Salary Distribution by Race (Figure 2)")
+```
+
+Looking at Figure 2, which displays the relationship between our numerical outcome variable Salary and our categorical explanatory variable Race, the Salary amounts look to be the greatest for people from Asian or White heritage and the smallest for people from Hispanic or African American heritage, though the difference does not seem to be extreme. There do not seem to be significant outliers.
+
+```{r, echo=FALSE}
+ggplot(salary_us,
+       aes(x = Salary,
+           y = `Education Level`,
+           colour = Race)) +
+  geom_boxplot()+
+  labs(x = "Salary", y = "Education Level", title = "Salary Distribution by Race and Education Level (Figure 3)") +
+  theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))
+```
+
+In Figure 3, we are examining the differences in Salary by Education Level and Race. It is quite evident that Salary varies on one's Education Level, but we will account for this within our regression. Within each Education Level (High School, Bachelor's, Master's, and Phd) there does not seem to be a huge variation in the mean Salary level between Races. There are, however, a few outliers within each Education and Race subgroup.
+
+## 3. Multiple linear regression
+
+### 3.1 Methods
+
+The components of our multiple linear regression model are the following:
+
+-   Outcome variable y = Salary
+
+-   Numerical explanatory variables = Years of Experience, Age
+
+-   Categorical explanatory variables = Gender, Race, Education Level, Senior
+
+### 3.2 Model Results
+
+```{r, echo=FALSE}
+salary_us <- salary_us %>% 
+  mutate(Race = as.factor(Race), 
+         Race = relevel(Race, ref = "White")) #make the intercept "White"
+```
+
+For the purpose of the linear regression, I designed the regression, using relevel, so that "White" becomes the reference level. In regression analysis, choosing a reference level can be important for interpreting coefficients. By releveling, I am setting "White" as the baseline or reference group, and the coefficients for other race categories will be compared to this reference group.
+
+```{r}
+m1 <- lm(Age ~ `Years of Experience`, data = salary_us)
+
+glance(m1)
+```
+
+An r\^2 of 0.8865288 is a bit concerning. This means that age and years of experience are highly correlated. For the simplicity of our model, and to eliminate competing forces, we will exclude Age from our regression.
+
+### 3.3 Confidence Intervals
+
+```{r}
+linear_model <- lm(Salary ~ Race, salary_us)
+
+tidy(linear_model)
+```
+
+Based on the above linear model we get an equation that looks like this...
+
+$$
+\hat{y} = b_0 +b_1x_1+b_2x_2+b_3x_3
+$$
+
+$$
+\hat{Salary}= 115763.793 - 3408.508*(African American)-2464.822(Asian)-5353.653(Hispanic)
+$$
+
+Keeping all else constant, the base salary (reference group = White) is \$115,763.793.
+
+-   If an individual is African American, their salary is estimated to be reduced by \$3,408.508 compared to the reference group.
+
+-   If an individual is Asian, their salary is estimated to be reduced by \$2,464.822 compared to the reference group.
+
+-   If an individual is Hispanic, their salary is estimated to be reduced by \$5,353.653 compared to the reference group.
+
+```{r}
+confint(linear_model, level=0.95)
+```
+
+What is important to note in these findings is that the 95% confidence interval for African American \[-11114.05, 4297.030\]. This means we are 95% confident that the true population value of the coefficient for African American race falls within this range. Since the interval includes 0, it suggests that the effect of being African American on salary is not statistically significant at the 5% significance level. Because the confidence intervals for Asians and Hispanics also include 0, it suggests that these variable may not be a significant predictor of the outcome variable, Salary. Statistical significance is determined by whether the interval excludes 0 or not. If the interval includes 0, it indicates that the estimate is not significantly different from 0.
+
+### 3.4 Testing Multiple Linear Regressions
+
+```{r}
+model1 <- lm(Salary ~ (Gender + `Years of Experience` + I(`Years of Experience`^2) + Senior + `Education Level`)*Race, data = salary_us)
+
+get_regression_table(model1)
+```
+
+### 3.5 Hypothesis Testing
+
+Using the output of our regression table we'll test our null hypotheses.
+
+$$
+\text{Null Hypothesis } (H_0) : \text{there is parallel difference in Salary across different Races
+(the complex model is no better than the simple model)}
+$$
+
+$$
+\text{Alternative Hypothesis } (H_a) : \text{the other varables in this regression differ by each race}
+$$
+
+```{r}
+model2 <- lm(Salary ~  Gender + `Years of Experience` + I(`Years of Experience`^2) + Senior + `Education Level` + Race, data = salary_us)
+
+tidy(model2, conf.int = TRUE)
+```
+
+```{r}
+anova(model1,model2)
+```
+
+The Analysis of Variance (ANOVA) table comparing two models to assess whether there are statistically significant differences between the models. The models are being compared using the F-statistic, which is a ratio of the explained variance to the unexplained variance.
+
+The p-value tells one how likely the data observed is to have occurred under the null hypothesis. A p-value below one's threshold of significance, typically p\<0.05, indicates strong evidence against the null hypothesis. The p-value (0.361) is higher than the assigned threshold of significance of 0.05. This suggests that there is not enough evidence to reject the null hypothesis that the additional variables in Model 1 (the interactions of each variable with Race) do not significantly improve the fit of the model compared to Model 2 (the additive model).
+
+```{r}
+## the AIC (Akaike's Information Criterion) is AIC = N*log(RSS/N) + 2k
+## choosing the lowest is generally a reasonable idea
+
+AIC(model1,model2)
+```
+
+The AIC function is used to measure of the relative quality of statistical models. The lower AIC values indicating a better-fitting model, while also considering the trade-off between the goodness of fit and the complexity of the model. With these results we can pick the model with the lowest AIC. Model 2 has a lower AIC (31461.91) compared to Model 1 (31480.84). In the context of our results, lower values indicate a better fit, so Model 2 (the additive model) is preferred over Model 1.
+
+## 4. Discussion
+
+### 4.1 Conclusion
+
+In the context of our data, Race does not seem to be a significant factor in explaining the variation in the dependent variable or its interactions with other independent variables such as Salary. There is **no** significant difference in Salary across different racial groups, as shown by our confidence intervals of the linear model. Furthermore, there is **no** evidence of interactions between the variables of interest (Gender, Years of Experience, Senior, Education Level) and race that would create a more complex relationship, as shown by the annova and AIC calculations.
+
+### 4.2 Limitations
+
+As with all studies and data sets there are potential limitation. For one, our data set may not represent the entire population accurately. Results might not be generalization to industries or regions not covered in the dataset. When taking a deeper look at the breakdown of Job Titles all of them were Data Science/Engineering/Computer Science related. This specific data set sorts observations based on country, but as we are well aware Salaries can vary greatly depending on what City/State an employee resides in. We also face an issue of data completeness which might result in biases or missing information that could affect the results found above. Furthermore, the dataset's categorization of race might be oversimplified and not capture the full diversity within each racial category. There could potentially be cultural or ethnic differences within each group that are not considered when completing our analysis on Race. Lastly, our salary metric might be too broad and not capture all aspects of compensation (e.g., bonuses, stock options, benefits, stipends). Any of these factors would could greatly influence our expected results.
+
+### 4.3 Further Questions
+
+While our current analysis provides valuable insights into the relationship between Race and Salary, considering various factors such as Education Level, Years of Experience, Seniority, and Gender. Moving forward, we could consider exploring additional research questions that could build on this analysis. One such topic could be an industry specific analysis of whether certain sectors or professions exhibit distinct patterns in the relationship between race and compensation. Furthermore, one might find it interesting to take a deep dive into company policies to analyze the impact of diversity and inclusion initiatives that might contribute to or mitigate salary differences. It could also be telling to consider how family structure, marital status, and/or other demographic factors influence the relationship between Race and Salary.
+
+## 5. References & Sources
+
+https://www.kaggle.com/datasets/amirmahdiabbootalebi/salary-by-job-title-and-country
+
+https://moderndive.com/index.html
+
+## 
