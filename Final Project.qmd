@@ -99,9 +99,8 @@ Before beginning our analysis it's important to have an understanding of what ty
 ggplot(data = salary_us, mapping = aes(x = `Years of Experience`, y = Salary, colour = Race)) +
   geom_point(alpha = 0.2)+
   geom_smooth(method = "loess")+
-  labs(x = "Years of Experiences", y = "Salary (USD)", title = "Salary Distribution by Experience (Figure 1)", caption = "Figure 1") + 
+  labs(x = "Years of Experiences", y = "Salary (USD)", title = "Salary Distribution by Experience (Figure 1)") + 
   theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))+
-  theme(plot.caption = element_text(hjust = 0.5))+
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
