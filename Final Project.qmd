@@ -229,11 +229,11 @@ $$
 $$
 
 $$
- -11286(Senior) - 21892(High School) + 5574(Master's) + 16010(Phd) - 1831(African American) 
+ -11286(Senior) - 21892(High School) + 5574(Master's) + 16010(Phd) 
 $$
 
 $$
- + 884(Asian) - 253(Hispanic)
+ - 1831(African American) + 884(Asian) - 253(Hispanic)
 $$
 
 This equation allows you to predict the salary for an individual based on their gender, years of experience, seniority, education level, and race. Each coefficient represents the estimated change in salary associated with a one-unit change in the corresponding predictor variable, holding other variables constant.
