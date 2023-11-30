@@ -99,8 +99,10 @@ Before beginning our analysis it's important to have an understanding of what ty
 ggplot(data = salary_us, mapping = aes(x = `Years of Experience`, y = Salary, colour = Race)) +
   geom_point(alpha = 0.2)+
   geom_smooth(method = "loess")+
- labs(x = "Years of Experiences", y = "Salary", title = "Salary Distribution by Experience (Figure 1)", caption = "Figure 1") + 
-theme(plot.caption = element_text(hjust = 0.5))
+  labs(x = "Years of Experiences", y = "Salary (USD)", title = "Salary Distribution by Experience (Figure 1)", caption = "Figure 1") + 
+  theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))+
+  theme(plot.caption = element_text(hjust = 0.5))+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 In Figure 1, we generated a scatter plot to see the overall relationship between our numerical outcome variable Salary and our numerical explanatory variable Years of Experiences. As the Years of Experience increased, there was an associated increase in Salary. Consistent with this relationship we see a positive quadratic correlation coefficient which we will account for in the regression computations.
@@ -110,10 +112,12 @@ In Figure 1, we generated a scatter plot to see the overall relationship between
 ```{r, echo=FALSE}
 ggplot(data = salary_us, mapping = aes(x = Salary, y = Race, colour = Race)) + 
   geom_boxplot(outlier.shape = '.')+
- labs(x = "Salary", y = "Race", title = "Salary Distribution by Race (Figure 2)")
+  labs(x = "Salary (USD)", y = "Race", title = "Salary Distribution by Race (Figure 2)")+
+  theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Looking at Figure 2, which displays the relationship between our numerical outcome variable Salary and our categorical explanatory variable Race, the Salary amounts look to be the greatest for people from Asian or White heritage and the smallest for people from Hispanic or African American heritage, though the difference does not seem to be extreme. There do not seem to be significant outliers.
+Looking at Figure 2, which displays the relationship between our numerical outcome variable Salary and our categorical explanatory variable Race, the Salary amounts look to be the greatest for people from Asian (\$113,299) or White (\$115,763.8) heritage and the smallest for people from Hispanic (\$110,410.1) or African American (\$112,355.3) heritage, though the difference does not seem to be extreme. Furthermore, there do not seem to be significant outliers.
 
 ```{r, echo=FALSE}
 ggplot(salary_us,
@@ -121,8 +125,9 @@ ggplot(salary_us,
            y = `Education Level`,
            colour = Race)) +
   geom_boxplot()+
-  labs(x = "Salary", y = "Education Level", title = "Salary Distribution by Race and Education Level (Figure 3)") +
-  theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))
+  labs(x = "Salary (USD)", y = "Education Level", title = "Salary Distribution by Race and Education Level (Figure 3)") +
+  theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 In Figure 3, we are examining the differences in Salary by Education Level and Race. It is quite evident that Salary varies on one's Education Level, but we will account for this within our regression. Within each Education Level (High School, Bachelor's, Master's, and Phd) there does not seem to be a huge variation in the mean Salary level between Races. There are, however, a few outliers within each Education and Race subgroup.
@@ -202,8 +207,11 @@ get_regression_table(model1)
 Using the output of our regression table we'll test our null hypotheses.
 
 $$
-\text{Null Hypothesis } (H_0) : \text{there is parallel difference in Salary across different Races
-(the complex model is no better than the simple model)}
+\text{Null Hypothesis } (H_0) : \text{there is parallel difference in Salary across different Races}
+$$
+
+$$
+\text{(the complex model is no better than the simple model)}
 $$
 
 $$
@@ -215,6 +223,20 @@ model2 <- lm(Salary ~  Gender + `Years of Experience` + I(`Years of Experience`^
 
 tidy(model2, conf.int = TRUE)
 ```
+
+$$
+\hat{Salary}= 39050 + 5162(Male) + 12150(Yrs Expereience) -267(Yrs Expereience)^2
+$$
+
+$$
+ -11286(Senior) - 21892(High School) + 5574(Master's) + 16010(Phd) - 1831(African American) 
+$$
+
+$$
+ + 884(Asian) - 253(Hispanic)
+$$
+
+This equation allows you to predict the salary for an individual based on their gender, years of experience, seniority, education level, and race. Each coefficient represents the estimated change in salary associated with a one-unit change in the corresponding predictor variable, holding other variables constant.
 
 ```{r}
 anova(model1,model2)
@@ -238,6 +260,36 @@ The AIC function is used to measure of the relative quality of statistical model
 ### 4.1 Conclusion
 
 In the context of our data, Race does not seem to be a significant factor in explaining the variation in the dependent variable or its interactions with other independent variables such as Salary. There is **no** significant difference in Salary across different racial groups, as shown by our confidence intervals of the linear model. Furthermore, there is **no** evidence of interactions between the variables of interest (Gender, Years of Experience, Senior, Education Level) and race that would create a more complex relationship, as shown by the annova and AIC calculations.
+
+```{r, echo = FALSE}
+new_data <- expand.grid(
+  Gender = c("Male"),
+  `Years of Experience` = seq(0, 30, by = 2),
+  Senior = c( 1),
+  `Education Level` = c("Bachelor's"),
+  Race = c("White", "African American")
+)
+
+predictions <- predict(model2, newdata = new_data)
+
+result_tibble <- bind_cols(new_data, Predicted_Salary = predictions)
+
+head(result_tibble, 5)
+```
+
+The above table shows the first 5 entries for a new data frame using Model 2 to make predictions about predicted salary. I controlled for Male, Senior, Bachelor's, and allowed Years of Experience and Race to vary. I included predictions for people of White and African American heritage and their predicted salaries given different years of experience.
+
+```{r, echo = FALSE}
+ggplot(result_tibble, aes(x = `Years of Experience`, y = Predicted_Salary, color = Race)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Observed vs. Predicted Salary (Figure 4)",
+       x = "Years of Experience",
+       y = "Salary") +
+    theme(legend.position = "top", plot.caption = element_text(hjust = 0.5))
+```
+
+The plot above, Figure 4, is a visualization of the relationship between predicted salary and years of experience for people from White and African American heritages, controlling for all other variables. Each point on the plot represents an prediction based on our regression, Model 2 (additive model). The color of the point represents the race of the individual and the lines connecting the points represent the trend in predicted salaries based on our regression model. This is consistent with our findings of how the model expects salaries to change with increasing years of experience but does not vary significantly for each race.
 
 ### 4.2 Limitations
 
