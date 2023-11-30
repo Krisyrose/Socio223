@@ -104,7 +104,7 @@ ggplot(data = salary_us, mapping = aes(x = `Years of Experience`, y = Salary, co
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-In Figure 1, we generated a scatter plot to see the overall relationship between our numerical outcome variable Salary and our numerical explanatory variable Years of Experiences. As the Years of Experience increased, there was an associated increase in Salary. Consistent with this relationship we see a positive quadratic correlation coefficient which we will account for in the regression computations.
+In Figure 1, we generated a scatter plot to see the overall relationship between our numerical outcome variable Salary and our numerical explanatory variable Years of Experiences. As the Years of Experience increased, there was an associated increase in Salary. Consistent with this relationship we see a positive quadratic correlation coefficient which we will account for in the regression computations. Because we only see one change in slope throughout the Years of Experience, we can account for this by adding (Years of Experience)\^2 to our regression calculations.
 
 The highest salaries, on average, appear to occur when an individual has approximately 25 years of experience. After 25 years, we see a downward sloping relationship between one additional year of experience and salary. This could be explained by people making high salaries exiting the job market when they have enough savings and retiring. This would drive down the mean salary we see individuals with years of experience making.
 
