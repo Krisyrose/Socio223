@@ -106,7 +106,7 @@ ggplot(data = salary_us, mapping = aes(x = `Years of Experience`, y = Salary, co
 
 In Figure 1, we generated a scatter plot to see the overall relationship between our numerical outcome variable Salary and our numerical explanatory variable Years of Experiences. As the Years of Experience increased, there was an associated increase in Salary. Consistent with this relationship we see a positive quadratic correlation coefficient which we will account for in the regression computations.
 
-**Would it be unreasonable to say:** The highest salaries, on average, appear to occur when an individual has approximately 25 years of experience. After 25 years, we see a downward sloping relationship between one additional year of experience and salary. This could be explained by people making high salaries exiting the job market when they have enough savings and retiring. This would drive down the mean salary we see individuals with years of experience making.
+The highest salaries, on average, appear to occur when an individual has approximately 25 years of experience. After 25 years, we see a downward sloping relationship between one additional year of experience and salary. This could be explained by people making high salaries exiting the job market when they have enough savings and retiring. This would drive down the mean salary we see individuals with years of experience making.
 
 ```{r, echo=FALSE}
 ggplot(data = salary_us, mapping = aes(x = Salary, y = Race, colour = Race)) + 
